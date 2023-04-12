@@ -1,29 +1,29 @@
 module.exports = (client) => {
-    const ascii = require('ascii-table')
-    const fs = require('fs')
-    const table = new ascii().setHeading('Commands', 'Status')
+  const ascii = require("ascii-table");
+  const fs = require("fs");
+  const table = new ascii().setHeading("Commands", "Status");
 
-    let commandsArray = []
+  let commandsArray = [];
 
-    const folders = fs.readdirSync('./Commands')
+  const folders = fs.readdirSync("./Commands");
 
-    for(const folder of folders) {
+  for (const folder of folders) {
+    const files = fs
+      .readdirSync(`./Commands/${folder}`)
+      .filter((file) => file.endsWith(".js"));
 
-        const files = fs.readdirSync(`./Commands/${folder}`).filter((file) => file.endsWith('.js'))
+    for (const file of files) {
+      const command = require(`../Commands/${folder}/${file}`);
 
-        for (const file of files) {
+      const properties = { folder, ...command };
+      client.commands.set(command.data.name, properties);
+      commandsArray.push(command.data.toJSON());
 
-            const command = require(`../Commands/${folder}/${file}`)
-            
-            const properties = {folder, ...command}
-            client.commands.set(command.data.name, properties)
-            commandsArray.push(command.data.toJSON())
-
-            table.addRow(file, "loaded")
-            continue
-        }
+      table.addRow(file, "loaded");
+      continue;
     }
-    
-    client.application.commands.set(commandsArray)
-    return console.log(table.toString(), "\nLoaded commands")
-}
+  }
+
+  client.application.commands.set(commandsArray);
+  return console.log(table.toString(), "\nLoaded commands");
+};
